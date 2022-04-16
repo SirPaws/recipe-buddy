@@ -1,9 +1,14 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from flask_restful import Resource, Api
+
 import yaml
 import requests
+from analyse import Analyse
 
 app = Flask(__name__)
+api = Api(app)
 
+# this is for the personal key 
 with open('src/key.yaml', 'r') as file:
     rapidapi_privates = yaml.safe_load(file)
 
@@ -20,14 +25,16 @@ headers = {
   'x-rapidapi-key': rapidapi_privates['X-RapidAPI-Key'],
 }
 
-random_joke = "food/jokes/random"
-find = "recipes/findByIngredients"
-randomFind = "recipes/random"
+api.add_resource(Analyse, '/analyse')
+
+# random_joke = "food/jokes/random"
+# find = "recipes/findByIngredients"
+# randomFind = "recipes/random"
 
 @app.route('/')
 def index():
-    joke_response = str(requests.request("GET", url + random_joke, headers=headers).json()['text'])
-    return render_template('index.html', joke=joke_response)
+    # joke_response = str(requests.request("GET", url + random_joke, headers=headers).json()['text'])
+    return render_template('index.html') #, joke=joke_response)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

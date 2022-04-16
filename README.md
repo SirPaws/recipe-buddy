@@ -16,4 +16,11 @@ X-RapidAPI-Key: <YOUR KEY HERE>
 where `<YOUR KEY HERE>` is your own rapid api key
 check the [example](https://rapidapi.com/spoonacular/api/recipe-food-nutrition/) on their website
 
+also this project relies on nltk so you need to set that up as well.
+to do that open up a python shell and type
+```py
+>>> import nltk
+>>> nltk.download()
+```
+
 
