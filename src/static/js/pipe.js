@@ -14,7 +14,7 @@ class Pipe {
     static get SLEEPING() { return 0; }
     static get LOADING () { return 1; }
     static get DONE    () { return 2; }
-    constructor(cb = (self, pipe, data) => {}) {
+    constructor(result_callback = (self, pipe, data) => {self; pipe; data;}) {
         this._data  = null;
         this._state = Pipe.SLEEPING;
         this.xhr = new XMLHttpRequest();
@@ -22,14 +22,15 @@ class Pipe {
         let self = this;
         this.xhr.onload = function() {
             self._data = JSON.parse(this.responseText);
-            if (self._data.message != null) {
-                if (self._data.message != 'okay')
-                    console.warn(self._data.message);
-                cb(this, self, {ingredients: self._data.ingredients})
+            if (self._data.id == null)
+                console.error('invalid result from xml http request');
+            //TODO maybe remove this
+            if (self._data.id == 'error') {
+                console.warn(self._data.message);
+                return;
             }
-            else cb(this, self, self._data);
+            result_callback(this, self, self._data);
 
-            console.log(this._data);
             if (self._state != Pipe.SLEEPING)
                 self._state = Pipe.DONE;
         }
@@ -80,6 +81,11 @@ class Pipe {
 
     getRecipes() {
         this.xhr.open("GET", '/get_recipes', true);
+        this.xhr.send();
+    }
+    
+    getRecipeInfo(id) {
+        this.xhr.open("GET", `/get_recipe_info?id=${id}`, true);
         this.xhr.send();
     }
 }

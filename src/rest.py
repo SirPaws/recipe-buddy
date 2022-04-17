@@ -1,5 +1,5 @@
 from flask import request
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 
 import nltk
 import inflect
@@ -15,7 +15,14 @@ class RestData:
         self.word_engine = inflect.engine()
         self.api = Spoontacular()
         self.initialised = True
-        self.word_list = []
+        print('TODO!!!! remove test data! from word list')
+        self.word_list = [
+            'cream cheese',
+            'banana',
+            'fruit paste',
+            'flour',
+            'salt',
+        ]
     
     def process_sentence(self, sentence):
         tokens = nltk.word_tokenize(sentence)
@@ -59,7 +66,7 @@ _analysis_data = RestData()
 
 class GetIngredients(Resource):
     def get(self):
-        return {'message': 'okay', 'ingredients': _analysis_data.word_list}, 201
+        return {'id': 'ingredient-list', 'ingredients': _analysis_data.word_list}, 201
 
 class AddIngredients(Resource):
     def post(self):
@@ -72,14 +79,14 @@ class AddIngredients(Resource):
                 sentences.append(processed_sentence)
         
         if len(sentences) == 0:
-            return {'message': "could not find any ingredients in sentence", 'ingredients': _analysis_data.word_list}, 404
+            return {'id': 'error', 'message': "could not find any ingredients in sentence"}, 400
         
         for sentence in sentences:
             for word in sentence:
                 if not word in _analysis_data.word_list:
                     _analysis_data.word_list.append(word)
 
-        return {'message': 'okay', 'ingredients': _analysis_data.word_list}, 201
+        return {'id': 'ingredient-list', 'ingredients': _analysis_data.word_list}, 201
 
 class RemoveIngredients(Resource):
     def post(self):
@@ -91,16 +98,15 @@ class RemoveIngredients(Resource):
             if processed_sentence != None:
                 sentences.append(processed_sentence)
         
-        #TODO(jpm): actually figure out what would be a correct status code
         if len(sentences) == 0:
-            return {'message': "could not find any ingredients in sentence", 'ingredients': _analysis_data.word_list}, 404
+            return {'id': 'error', 'message': "could not find any ingredients in sentence"}, 400
 
         for sentence in sentences:
             for word in sentence:
                 if word in _analysis_data.word_list:
                     _analysis_data.word_list.remove(word)
 
-        return {'message': 'okay', 'ingredients': _analysis_data.word_list}, 201
+        return {'id': 'ingredient-list', 'ingredients': _analysis_data.word_list}, 201
 
 class GetRecipes(Resource):
     def get(self):
@@ -110,4 +116,38 @@ class GetRecipes(Resource):
         print(resp.text)
         print('jsoned')
         print(json.loads(resp.text))
-        return json.loads(resp.text), resp.status_code
+        return {'id': 'recipe-list', 'recipes': json.loads(resp.text)}, resp.status_code
+
+class GetRecipeInfo(Resource):
+    def get(self):
+        if not 'id' in request.args:
+            return {'id': 'error', 'message': "missing recipe id"}, 400
+
+        try:
+            recipe_id = int(request.args['id'])
+        except ValueError:
+            return {'id': 'error', 'message': "invalid recipe id"}, 400
+        
+        print(recipe_id)
+        # resp = _analysis_data.api.getRecipeInfo(id=recipe_id)
+        data = {}
+        if recipe_id == 527766:
+            with open('src/test_file.json', encoding="utf-8") as json_file:
+              data = json.load(json_file)
+
+            missing_ingredients = []
+            for ingredient in data['extendedIngredients']:
+                processed_name = _analysis_data.process_sentence(ingredient['name'])
+                if processed_name == None or len(processed_name) == 0:
+                    ingredient['processedName'] = ingredient['name']
+                    missing_ingredients.append(ingredient)
+                    continue
+                ingredient['processedName'] = ' '.join(processed_name)
+                processed_name = filter(lambda word: word in _analysis_data.word_list, processed_name)
+                processed_name = list(processed_name)
+                if len(processed_name) == 0:
+                    missing_ingredients.append(ingredient)
+            data['missingIngredients'] = missing_ingredients
+            return {'id': 'recipe-info', 'info': data}, 201
+        return {'id': 'error', 'message': "testing error"}, 400
+        

@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_restful import Api
 
-from rest import GetIngredients, AddIngredients, RemoveIngredients ,GetRecipes
+from rest import GetIngredients, AddIngredients, RemoveIngredients ,GetRecipes, GetRecipeInfo
 from spoontacular import Spoontacular
 
 app = Flask(__name__)
@@ -18,15 +18,11 @@ api.add_resource(GetIngredients, '/get_ingredients')
 api.add_resource(AddIngredients, '/add_ingredients')
 api.add_resource(RemoveIngredients, '/remove_ingredients')
 api.add_resource(GetRecipes, '/get_recipes')
-
-# random_joke = "food/jokes/random"
-# find = "recipes/findByIngredients"
-# randomFind = "recipes/random"
+api.add_resource(GetRecipeInfo, '/get_recipe_info');
 
 @app.route('/')
 def index():
-    # joke_response = str(requests.request("GET", url + random_joke, headers=headers).json()['text'])
-    return render_template('index.html') #, joke=joke_response)
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

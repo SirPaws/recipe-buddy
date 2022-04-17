@@ -16,8 +16,9 @@ class RecipeSpeechRecognition {
         this.recognition.interimResults = false;
         this.recognition.maxAlternatives = maxAlternatives || 5;
         this.is_on = false;
+        this.is_listening = false;
 
-        this.rec_results = null;
+        this.results = null;
 
         //HACK(jmp): javascript fuckery
         //           'this' would be overwritten in the function
@@ -25,8 +26,46 @@ class RecipeSpeechRecognition {
         //
         let self = this;
         this.recognition.onresult = (event) => {
-            self.results = event.results[0];
+            let results = event.results[0];
+            if (self.is_listening == false) {
+                let first = results[0];
+                if (first.transcript.includes('recipe buddy')) {
+                    self.is_listening = true;  
+                    let text = first.transcript.split('recipe buddy')[0];
+                    if (text.length > 0) {
+                        self.results = [ first ];
+                    }
+                }
+
+                // intentionally sepperated so we can detect 'hey recipe buddy shut down'
+                if (first.transcript.includes('shut down'))      first = null;
+                else if (first.transcript.includes('shot down')) first = null;
+                else if (first.transcript.includes('turn off'))  first = null;
+                if (first == null) {
+                    self.results = null;
+                    setTimeout(() => self.disable(), 200);
+                }
+            } else {
+                let first = results[0];
+                if (first.transcript.includes('shut down'))      first = null;
+                else if (first.transcript.includes('shot down')) first = null;
+                else if (first.transcript.includes('turn off'))  first = null;
+                if (first == null) {
+                    setTimeout(() => self.disable(), 200);
+                    return;
+                }
+                self.results = tmp_results;
+            }
         };
+
+        this.recognition.onaudioend = event => {
+            event;
+            if (self.is_on) {
+                setTimeout(() => {
+                    self.recognition.start();
+                }, 200)
+            }
+        }
     }
 
     clear() {
@@ -47,9 +86,27 @@ class RecipeSpeechRecognition {
 
     // toggles the speech recognition engine, on and off
     toggle() {
-        if (this.is_on) this.recognition.stop();
+        if (this.is_on) {
+            this.recognition.stop();
+            if (this.is_listening)
+                this.is_listening = false;
+        }
         else this.recognition.start();
         this.is_on = !this.is_on;
+    }
+
+    enable() {
+        if (this.is_on) return;
+        this.recognition.start();
+        this.is_on = true;
+    }
+
+    disable() {
+        if (!this.is_on) return;
+        if (this.is_listening)
+            this.is_listening = false;
+        this.recognition.stop();
+        this.is_on = false;
     }
 
     // returns an array of objects { key, values }

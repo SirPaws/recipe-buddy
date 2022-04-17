@@ -18,7 +18,7 @@ class Spoontacular:
         
         return rapidapi_privates
 
-    def query(self, params, urlpath):
+    def query(self, urlpath, params = None,):
         response = requests.request('GET', self.url + urlpath, headers=self.headers, params=params)
         return response
     
@@ -31,3 +31,7 @@ class Spoontacular:
             "ignorePantry": str(ignorePantry),
             "ranking":"1"
         })
+    def getRecipeInfo(self, id):
+        return self.query(
+            urlpath='recipes/'+ str(id) +'/information'            
+        )
