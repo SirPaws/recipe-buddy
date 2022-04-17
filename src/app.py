@@ -1,31 +1,23 @@
-from flask import Flask, render_template, request
-from flask_restful import Resource, Api
+from flask import Flask, render_template
+from flask_restful import Api
 
-import yaml
-import requests
-from analyse import Analyse
+from rest import GetIngredients, AddIngredients, RemoveIngredients ,GetRecipes
+from spoontacular import Spoontacular
 
 app = Flask(__name__)
 api = Api(app)
 
-# this is for the personal key 
-with open('src/key.yaml', 'r') as file:
-    rapidapi_privates = yaml.safe_load(file)
-
-if not 'X-RapidAPI-Key' in rapidapi_privates.keys():
+if not 'X-RapidAPI-Key' in Spoontacular.loadRapidAPI().keys():
     print('this requires a yaml file with your rapid api key!')
     print('create a file in the src directory named \'key.yaml\'')
     print('and then add the line \'X-RapidAPI-Key: <YOUR KEY HERE>\'')
     print('where <YOUR KEY HERE> is replaced with your key')
     exit()
 
-url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/"
-headers = {
-  'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-  'x-rapidapi-key': rapidapi_privates['X-RapidAPI-Key'],
-}
-
-api.add_resource(Analyse, '/analyse')
+api.add_resource(GetIngredients, '/get_ingredients')
+api.add_resource(AddIngredients, '/add_ingredients')
+api.add_resource(RemoveIngredients, '/remove_ingredients')
+api.add_resource(GetRecipes, '/get_recipes')
 
 # random_joke = "food/jokes/random"
 # find = "recipes/findByIngredients"

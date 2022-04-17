@@ -29,11 +29,18 @@ class RecipeSpeechRecognition {
         };
     }
 
+    clear() {
+        this.results = null;
+    }
+
     get sentences() {
+        if (this.results == null) return null;
+
         let result = [];
         for (let i = 0; i < this.results.length; i++) {
             result.push(this.results[i].transcript);
         }
+
         if (result.length == 0) return null;
         return result;
     }
