@@ -1,7 +1,6 @@
 from flask import request
 from flask_restful import Resource
 
-import openfoodfacts
 import nltk
 import inflect
 from spoontacular import Spoontacular
