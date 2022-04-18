@@ -160,15 +160,15 @@ class Recipe {
 
         withState(_=>{
             rectMode(CORNER);
-            rect(width /2 - rect_width/2 + 20, y + 50, rect_width - 40, 200); 
+            rect(width /2 - rect_width/2 + 20, y + 50, rect_width - 40, 600); 
         });
         withState(_=>{
-            textAlign(CENTER, CENTER);
-            text(this.#instructions, width /2 - rect_width/2 + 20, y + 30, rect_width - 40, 200);
+            // can't figure out a good solution, so i'm giving up and just placing the text besides
+            textAlign(CENTER, TOP);
+            text(this.#instructions, width /2 - rect_width/2 + 20, y + 70, rect_width); 
             // text('heres some text\nwith a newline', width /2 - rect_width/2 + 20, y + 100, rect_width - 40);
         });
-        text
-        return y + 200;
+        return y + 600;
     }
 
     display() {
