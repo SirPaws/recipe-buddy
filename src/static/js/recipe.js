@@ -43,6 +43,7 @@ class Recipe {
 
     #instructions_button = null;
     constructor(obj) {
+        console.log(obj);
         this.#aggregateLikes = obj.aggregateLikes;
         this.#analyzedInstructions = obj.analyzedInstructions;
         this.#cheap = obj.cheap;
@@ -92,11 +93,35 @@ class Recipe {
     #expand_general(state, y, rect_width) {
         if (state != Button.ON) return y;
 
+        let string = '';
+
+        if (this.#vegan)       string += 'vegan';
+        if (this.#vegetarian)  string += ' vegetarian';
+        if (this.#sustainable) string += ' sustainable';
+        if (string.length > 0) string += '\n';
+
+        let old_length = string.length;
+        if (this.#glutenFree) string += ' gluten free';
+        if (this.#dairyFree)  string += ' dairyFree';
+        if (string.length != old_length) string += '\n'
+
+        if (this.#creditsText) string += `Credits: ${this.#creditsText}\n`
+        if (this.#sourceUrl) string += `url: ${this.#sourceUrl}\n`
+
+        if (this.#servings)       string += `servings: ${this.#servings}\n`;
+        if (this.#readyInMinutes) string += `ready in: ${this.#readyInMinutes} minutes\n`;
+
         withState(_=>{
             rectMode(CORNER);
-            rect(width /2 - rect_width/2 + 20, y + 50, rect_width - 40, 200); 
+            rect(width /2 - rect_width/2 + 20, y + 50, rect_width - 40, 300); 
         });
-        return y + 200;
+        
+        withState(_=>{
+            rectMode(CENTER);
+            textAlign(CENTER, CENTER);
+            text(string, width/2 - 10, y + 230, rect_width - 40, 200); 
+        });
+        return y + 300;
     }
 
     #expand_ingredients(state, y, rect_width) {
@@ -131,10 +156,18 @@ class Recipe {
     #expand_instructions(state, y, rect_width) {
         if (state != Button.ON) return y;
 
+
+
         withState(_=>{
             rectMode(CORNER);
             rect(width /2 - rect_width/2 + 20, y + 50, rect_width - 40, 200); 
         });
+        withState(_=>{
+            textAlign(CENTER, CENTER);
+            text(this.#instructions, width /2 - rect_width/2 + 20, y + 30, rect_width - 40, 200);
+            // text('heres some text\nwith a newline', width /2 - rect_width/2 + 20, y + 100, rect_width - 40);
+        });
+        text
         return y + 200;
     }
 
@@ -160,7 +193,9 @@ class Recipe {
         let rect_width = img.width + 60;
         withState(_=>{
             if (this.#general_button.y != y + 30 - 50 * .5) {
+                let old_state = this.#general_button.current_state;
                 this.#general_button = new Button(width/2, y + 30, rect_width, 50, {off: 255, text_off: 0, text: "general", corners: 18, is_toggle: true}) 
+                this.#general_button.current_state = old_state;
             }
             state = this.#general_button.update(mouse.x, mouse.y, mouse.button == LEFT);
         });
@@ -170,8 +205,10 @@ class Recipe {
         y += 30 + 50;
         withState(_=>{
             if (this.#ingredients_button.y != y + 30 - 50 * .5) {
+                let old_state = this.#ingredients_button.current_state;
                 this.#ingredients_button = new Button(width/2, y + 30, rect_width, 50, 
                     {off: 255, text_off: 0, text: "ingredients", corners: 18, is_toggle: true}) 
+                this.#ingredients_button.current_state = old_state;
             }
             state = this.#ingredients_button.update(mouse.x, mouse.y, mouse.button == LEFT);
         });
@@ -181,8 +218,10 @@ class Recipe {
         y += 50 + 30;
         withState(_=>{
             if (this.#instructions_button.y != y + 30 - 50 * .5) {
+                let old_state = this.#instructions_button.current_state;
                 this.#instructions_button = new Button(width/2, y + 30, rect_width, 50, 
                     {off: 255, text_off: 0, text: "instructions", corners: 18, is_toggle: true}) 
+                this.#instructions_button.current_state = old_state;
             }
             state = this.#instructions_button.update(mouse.x, mouse.y, mouse.button == LEFT);
         });

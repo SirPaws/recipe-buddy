@@ -1,4 +1,5 @@
 /*
+ * taken from https://editor.p5js.org/SirPaws/sketches/yHvgQ1yek
  * This class creates a button
  * constructor ( x, y, width, height, [optionals] )
  *  x: the x position of the center of the button 
@@ -183,8 +184,8 @@ class Button {
         }
 
         if (state == Button.DBL_CLICK || state == Button.LONG_PRESS)
-            this.current_state = Button.HOLD;
-        else this.current_state = state;
+             return this.current_state = Button.HOLD;
+        else return this.current_state = state;
     }
 
     update(x, y, press) {

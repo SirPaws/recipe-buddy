@@ -1,4 +1,13 @@
 
+class CommandKind {
+    static get ADD_INGREDIENT()    { return 0; }
+    static get REMOVE_INGREDIENT() { return 1; }
+    static get GET_RECIPE()        { return 2; }
+}
+
+// this is general program state handling
+let display_offset = 0;
+let scrollable_state = false;
 class ProgramState {
     static get START_UP()              { return 0; }
     static get MODIFYING_INGREDIENTS() { return 1; }
@@ -29,6 +38,7 @@ class ProgramState {
         if (state < ProgramState.START_UP || state > ProgramState.DISPLAYING_RECIPE)
             return;
         this.#state = state;
+        display_offset = 0;
     }
 
     updateUserdata(updater = userdata => userdata) {
@@ -45,3 +55,45 @@ function withState(callback = _=>{}) {
     pop()
 }
 
+function mouseWheel(event) {
+    display_offset -= event.delta;
+}
+
+function decay(max, x) {
+    return max * Math.log(max + x) - max * Math.log(max);
+}
+
+function scrollable(max_offset, callback = _=>{}) {
+    scrollable_state = true;
+
+    push()
+    translate(0, display_offset);
+    callback();
+    pop();
+
+    if (display_offset > max_offset + 0.1) display_offset -= decay(max_offset, display_offset);
+
+    scrollable_state = false;
+}
+
+let mouse_button = null;
+function getMouse() {
+    let button = mouse_button;
+    mouse_button = null;
+    let mouse_y = mouseY;
+
+    if (scrollable_state) mouse_y -= display_offset;
+
+    return {
+        x: mouseX,
+        y: mouse_y,
+        button: button
+    };
+}
+
+function mousePressed()  { 
+    mouse_button = mouseButton; 
+}
+function mouseReleased() {
+    mouse_button = null;
+}

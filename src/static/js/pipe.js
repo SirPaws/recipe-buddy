@@ -1,14 +1,4 @@
 
-/*
-class Thing {
-    private int a = 5;
-    Thing() {
-        
-    }
-}
-*/
-
-
 // this is our gateway between python and js
 class Pipe {
     static get SLEEPING() { return 0; }

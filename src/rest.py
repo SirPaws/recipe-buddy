@@ -5,6 +5,7 @@ import nltk
 import inflect
 from spoontacular import Spoontacular
 import json
+import os
 
 class RestData:
     def __init__(self):
@@ -15,14 +16,19 @@ class RestData:
         self.word_engine = inflect.engine()
         self.api = Spoontacular()
         self.initialised = True
-        print('TODO!!!! remove test data! from word list')
-        self.word_list = [
-            'cream cheese',
-            'banana',
-            'fruit paste',
-            'flour',
-            'salt',
-        ]
+        self.file_path = "data/user_ingredients.json" 
+        with open(self.file_path, "r") as json_file:
+            self.file = json_file
+            file_size = os.path.getsize(self.file_path)
+            if file_size > 0:
+                self.word_list = json.load(self.file)
+        self.save()
+
+    def save(self):
+        with open(self.file_path, "w+") as json_file:
+            json_file.truncate(0)
+            json.dump(self.word_list, json_file)
+
     
     def process_sentence(self, sentence):
         tokens = nltk.word_tokenize(sentence)
@@ -79,13 +85,14 @@ class AddIngredients(Resource):
                 sentences.append(processed_sentence)
         
         if len(sentences) == 0:
-            return {'id': 'error', 'message': "could not find any ingredients in sentence"}, 400
+            return {'id': 'error', 'message': "could not find any ingredients in sentence"}, 201
         
         for sentence in sentences:
             for word in sentence:
                 if not word in _analysis_data.word_list:
                     _analysis_data.word_list.append(word)
 
+        _analysis_data.save()
         return {'id': 'ingredient-list', 'ingredients': _analysis_data.word_list}, 201
 
 class RemoveIngredients(Resource):
@@ -106,6 +113,7 @@ class RemoveIngredients(Resource):
                 if word in _analysis_data.word_list:
                     _analysis_data.word_list.remove(word)
 
+        _analysis_data.save()
         return {'id': 'ingredient-list', 'ingredients': _analysis_data.word_list}, 201
 
 class GetRecipes(Resource):
@@ -129,12 +137,10 @@ class GetRecipeInfo(Resource):
             return {'id': 'error', 'message': "invalid recipe id"}, 400
         
         print(recipe_id)
-        # resp = _analysis_data.api.getRecipeInfo(id=recipe_id)
-        data = {}
-        if recipe_id == 527766:
-            with open('src/test_file.json', encoding="utf-8") as json_file:
-              data = json.load(json_file)
 
+        resp = _analysis_data.api.getRecipeInfo(id=recipe_id)
+        if resp.ok:
+            data = json.loads(resp.text)
             missing_ingredients = []
             for ingredient in data['extendedIngredients']:
                 processed_name = _analysis_data.process_sentence(ingredient['name'])

@@ -29,9 +29,14 @@ class RecipeSpeechRecognition {
             let results = event.results[0];
             if (self.is_listening == false) {
                 let first = results[0];
-                if (first.transcript.includes('recipe buddy')) {
+                let result = first.transcript.includes('recipe buddy');
+                result = result || first.transcript.includes('recipe body');
+                if (result) {
                     self.is_listening = true;  
-                    let text = first.transcript.split('recipe buddy')[0];
+                    let text;
+                    if (first.transcript.includes('recipe buddy'))
+                         text = first.transcript.split('recipe buddy')[1];
+                    else text = first.transcript.split('recipe body')[1];
                     if (text.length > 0) {
                         self.results = [ first ];
                     }
@@ -41,6 +46,7 @@ class RecipeSpeechRecognition {
                 if (first.transcript.includes('shut down'))      first = null;
                 else if (first.transcript.includes('shot down')) first = null;
                 else if (first.transcript.includes('turn off'))  first = null;
+                else if (first.transcript.includes('stop'))      first = null;
                 if (first == null) {
                     self.results = null;
                     setTimeout(() => self.disable(), 200);
@@ -50,20 +56,21 @@ class RecipeSpeechRecognition {
                 if (first.transcript.includes('shut down'))      first = null;
                 else if (first.transcript.includes('shot down')) first = null;
                 else if (first.transcript.includes('turn off'))  first = null;
+                else if (first.transcript.includes('stop'))      first = null;
                 if (first == null) {
                     setTimeout(() => self.disable(), 200);
                     return;
                 }
-                self.results = tmp_results;
+                self.results = results;
             }
         };
 
-        this.recognition.onaudioend = event => {
+        this.recognition.onend = event => {
             event;
             if (self.is_on) {
-                setTimeout(() => {
+                setTimeout(_=>{
                     self.recognition.start();
-                }, 200)
+                }, 250)
             }
         }
     }
